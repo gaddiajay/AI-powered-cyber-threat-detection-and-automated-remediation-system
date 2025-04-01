@@ -95,11 +95,11 @@
                 <i class="fas fa-sort"></i> Sort By
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="{{ url_for('threats', **request.args, sort='date', order='desc') }}">Date (Newest)</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('threats', **request.args, sort='date', order='asc') }}">Date (Oldest)</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('threats', **request.args, sort='severity', order='desc') }}">Severity (High-Low)</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('threats', **request.args, sort='severity', order='asc') }}">Severity (Low-High)</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('threats', **request.args, sort='confidence', order='desc') }}">Confidence (High-Low)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('threats', sort='date', order='desc') }}">Date (Newest)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('threats', sort='date', order='asc') }}">Date (Oldest)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('threats', sort='severity', order='desc') }}">Severity (High-Low)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('threats', sort='severity', order='asc') }}">Severity (Low-High)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('threats', sort='confidence', order='desc') }}">Confidence (High-Low)</a></li>
             </ul>
         </div>
     </div>
@@ -196,7 +196,7 @@
                 <ul class="pagination mb-0">
                     {% if threats.has_prev %}
                     <li class="page-item">
-                        <a class="page-link" href="{{ url_for('threats', page=threats.prev_num, **request.args) }}" aria-label="Previous">
+                        <a class="page-link" href="{{ url_for('threats', page=threats.prev_num) }}" aria-label="Previous">
                             <span aria-hidden="true">&laquo;</span>
                         </a>
                     </li>
@@ -212,11 +212,11 @@
                         {% if page_num %}
                             {% if page_num == threats.page %}
                             <li class="page-item active">
-                                <a class="page-link" href="{{ url_for('threats', page=page_num, **request.args) }}">{{ page_num }}</a>
+                                <a class="page-link" href="{{ url_for('threats', page=page_num) }}">{{ page_num }}</a>
                             </li>
                             {% else %}
                             <li class="page-item">
-                                <a class="page-link" href="{{ url_for('threats', page=page_num, **request.args) }}">{{ page_num }}</a>
+                                <a class="page-link" href="{{ url_for('threats', page=page_num) }}">{{ page_num }}</a>
                             </li>
                             {% endif %}
                         {% else %}
@@ -228,7 +228,7 @@
                     
                     {% if threats.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="{{ url_for('threats', page=threats.next_num, **request.args) }}" aria-label="Next">
+                        <a class="page-link" href="{{ url_for('threats', page=threats.next_num) }}" aria-label="Next">
                             <span aria-hidden="true">&raquo;</span>
                         </a>
                     </li>

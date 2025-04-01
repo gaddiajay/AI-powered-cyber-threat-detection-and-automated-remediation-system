@@ -168,7 +168,7 @@
                 <ul class="pagination mb-0">
                     {% if actions.has_prev %}
                     <li class="page-item">
-                        <a class="page-link" href="{{ url_for('remediation.remediation_history', page=actions.prev_num, **request.args) }}" aria-label="Previous">
+                        <a class="page-link" href="{{ url_for('remediation.remediation_history', page=actions.prev_num) }}" aria-label="Previous">
                             <span aria-hidden="true">&laquo;</span>
                         </a>
                     </li>
@@ -184,11 +184,11 @@
                         {% if page_num %}
                             {% if page_num == actions.page %}
                             <li class="page-item active">
-                                <a class="page-link" href="{{ url_for('remediation.remediation_history', page=page_num, **request.args) }}">{{ page_num }}</a>
+                                <a class="page-link" href="{{ url_for('remediation.remediation_history', page=page_num) }}">{{ page_num }}</a>
                             </li>
                             {% else %}
                             <li class="page-item">
-                                <a class="page-link" href="{{ url_for('remediation.remediation_history', page=page_num, **request.args) }}">{{ page_num }}</a>
+                                <a class="page-link" href="{{ url_for('remediation.remediation_history', page=page_num) }}">{{ page_num }}</a>
                             </li>
                             {% endif %}
                         {% else %}
@@ -200,7 +200,7 @@
                     
                     {% if actions.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="{{ url_for('remediation.remediation_history', page=actions.next_num, **request.args) }}" aria-label="Next">
+                        <a class="page-link" href="{{ url_for('remediation.remediation_history', page=actions.next_num) }}" aria-label="Next">
                             <span aria-hidden="true">&raquo;</span>
                         </a>
                     </li>
