@@ -1,0 +1,203 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1 class="mb-4"><i class="fas fa-cog"></i> System Settings</h1>
+
+<div class="row">
+    <!-- System Settings Panel -->
+    <div class="col-md-8">
+        <div class="card bg-dark mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-sliders-h"></i> Configuration Settings</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('settings') }}">
+                    <div class="settings-section">
+                        <h5 class="text-primary mb-3">Scan Settings</h5>
+                        
+                        <div class="mb-3 row">
+                            <label for="scanFrequency" class="col-sm-4 col-form-label">Automatic Scan Frequency</label>
+                            <div class="col-sm-8">
+                                <select class="form-select" id="scanFrequency" name="scan_frequency">
+                                    <option value="disabled">Disabled</option>
+                                    <option value="hourly">Hourly</option>
+                                    <option value="daily" selected>Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                </select>
+                                <div class="form-text">How often the system will automatically scan for threats</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 row">
+                            <label for="scanDepth" class="col-sm-4 col-form-label">Default Scan Depth</label>
+                            <div class="col-sm-8">
+                                <select class="form-select" id="scanDepth" name="scan_depth">
+                                    <option value="quick">Quick Scan</option>
+                                    <option value="deep" selected>Deep Scan</option>
+                                    <option value="comprehensive">Comprehensive Scan</option>
+                                </select>
+                                <div class="form-text">Default depth for automatic scans</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h5 class="text-primary mb-3">Detection Settings</h5>
+                        
+                        <div class="mb-3 row">
+                            <label for="threatSensitivity" class="col-sm-4 col-form-label">Threat Detection Sensitivity</label>
+                            <div class="col-sm-8">
+                                <select class="form-select" id="threatSensitivity" name="threat_sensitivity">
+                                    <option value="low">Low</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="high">High</option>
+                                </select>
+                                <div class="form-text">Higher sensitivity may generate more false positives</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 row">
+                            <label for="mlModel" class="col-sm-4 col-form-label">ML Model Selection</label>
+                            <div class="col-sm-8">
+                                <select class="form-select" id="mlModel" name="ml_model">
+                                    <option value="standard">Standard Model</option>
+                                    <option value="enhanced" selected>Enhanced Model</option>
+                                    <option value="experimental">Experimental Model</option>
+                                </select>
+                                <div class="form-text">Select which machine learning model to use for detection</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 row">
+                            <label for="confidenceThreshold" class="col-sm-4 col-form-label">Confidence Threshold</label>
+                            <div class="col-sm-8">
+                                <input type="range" class="form-range" min="50" max="95" step="5" value="70" id="confidenceThreshold" name="confidence_threshold">
+                                <div class="d-flex justify-content-between">
+                                    <small>50%</small>
+                                    <small>70%</small>
+                                    <small>95%</small>
+                                </div>
+                                <div class="form-text">Minimum confidence level for threat alerts</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h5 class="text-primary mb-3">Remediation Settings</h5>
+                        
+                        <div class="mb-3 row">
+                            <div class="col-sm-8 offset-sm-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="autoRemediation" name="auto_remediation" checked>
+                                    <label class="form-check-label" for="autoRemediation">Enable Automatic Remediation</label>
+                                </div>
+                                <div class="form-text">Allow the system to automatically apply remediation actions</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 row">
+                            <label for="remediationLevel" class="col-sm-4 col-form-label">Auto-Remediation Level</label>
+                            <div class="col-sm-8">
+                                <select class="form-select" id="remediationLevel" name="remediation_level">
+                                    <option value="conservative">Conservative (Low Risk Actions Only)</option>
+                                    <option value="balanced" selected>Balanced</option>
+                                    <option value="aggressive">Aggressive (All Actions)</option>
+                                </select>
+                                <div class="form-text">Determines which remediation actions can be automated</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h5 class="text-primary mb-3">Notification Settings</h5>
+                        
+                        <div class="mb-3 row">
+                            <label for="notificationEmail" class="col-sm-4 col-form-label">Notification Email</label>
+                            <div class="col-sm-8">
+                                <input type="email" class="form-control" id="notificationEmail" name="notification_email" placeholder="admin@example.com">
+                                <div class="form-text">Email address for security alerts</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 row">
+                            <label for="notificationLevel" class="col-sm-4 col-form-label">Notification Level</label>
+                            <div class="col-sm-8">
+                                <select class="form-select" id="notificationLevel" name="notification_level">
+                                    <option value="critical">Critical Threats Only</option>
+                                    <option value="high_above">High Severity and Above</option>
+                                    <option value="all" selected>All Threats</option>
+                                </select>
+                                <div class="form-text">Which threat severities trigger notifications</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Settings
+                        </button>
+                        <button type="reset" class="btn btn-outline-secondary">
+                            <i class="fas fa-undo"></i> Reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Info Panel -->
+    <div class="col-md-4">
+        <div class="card bg-dark mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-info-circle"></i> System Information</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush bg-dark">
+                    <li class="list-group-item bg-dark text-light d-flex justify-content-between">
+                        <span>System Version:</span>
+                        <span class="text-end">1.0.0</span>
+                    </li>
+                    <li class="list-group-item bg-dark text-light d-flex justify-content-between">
+                        <span>ML Model Version:</span>
+                        <span class="text-end">2.3.1</span>
+                    </li>
+                    <li class="list-group-item bg-dark text-light d-flex justify-content-between">
+                        <span>Database Status:</span>
+                        <span class="badge bg-success">Connected</span>
+                    </li>
+                    <li class="list-group-item bg-dark text-light d-flex justify-content-between">
+                        <span>Last Scan:</span>
+                        <span class="text-end">{{ now.strftime('%Y-%m-%d %H:%M') }}</span>
+                    </li>
+                    <li class="list-group-item bg-dark text-light d-flex justify-content-between">
+                        <span>Next Scheduled Scan:</span>
+                        <span class="text-end">{{ (now + {'hourly': 3600, 'daily': 86400, 'weekly': 604800, 'disabled': 0}[system_setting.get('scan_frequency', 'daily')] | int) | datetime }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card bg-dark mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-tools"></i> Maintenance</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" type="button">
+                        <i class="fas fa-sync"></i> Update Threat Database
+                    </button>
+                    <button class="btn btn-outline-primary" type="button">
+                        <i class="fas fa-brain"></i> Retrain ML Models
+                    </button>
+                    <button class="btn btn-outline-primary" type="button">
+                        <i class="fas fa-database"></i> Optimize Database
+                    </button>
+                    <button class="btn btn-outline-danger" type="button">
+                        <i class="fas fa-trash-alt"></i> Clear Old Logs
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

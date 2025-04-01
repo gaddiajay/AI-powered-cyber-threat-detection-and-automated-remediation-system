@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="card auth-card">
+        <div class="card-header bg-primary text-white text-center">
+            <h4><i class="fas fa-lock"></i> Login to AI-Powered Cyber Threat Detection</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('auth.login') }}">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-key"></i></span>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+                    </div>
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                    <label class="form-check-label" for="remember">Remember me</label>
+                </div>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                </div>
+            </form>
+        </div>
+        <div class="card-footer text-center">
+            <p class="mb-0">Don't have an account? <a href="{{ url_for('auth.register') }}">Register here</a></p>
+        </div>
+    </div>
+    
+    <div class="mt-4 text-center">
+        <h5 class="text-light">AI-Powered Cyber Defense Platform</h5>
+        <p class="text-muted">Utilizing machine learning and deep learning to protect against evolving cyber threats</p>
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="card bg-dark">
+                    <div class="card-body text-center">
+                        <i class="fas fa-robot fa-2x text-primary mb-3"></i>
+                        <h6>AI Detection</h6>
+                        <small class="text-muted">Machine learning models to detect threats</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-dark">
+                    <div class="card-body text-center">
+                        <i class="fas fa-shield-alt fa-2x text-primary mb-3"></i>
+                        <h6>Real-time Monitoring</h6>
+                        <small class="text-muted">Continuous security analysis</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-dark">
+                    <div class="card-body text-center">
+                        <i class="fas fa-wrench fa-2x text-primary mb-3"></i>
+                        <h6>Auto Remediation</h6>
+                        <small class="text-muted">Automated threat response</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

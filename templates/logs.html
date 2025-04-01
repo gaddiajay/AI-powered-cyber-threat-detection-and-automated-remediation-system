@@ -1,0 +1,298 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1 class="mb-4"><i class="fas fa-clipboard-list"></i> Security Logs</h1>
+
+<!-- Filters Row -->
+<div class="card bg-dark mb-4">
+    <div class="card-body">
+        <h5 class="card-title mb-3">Filter Logs</h5>
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label for="sourceFilter" class="form-label">Log Source</label>
+                <select class="form-select" id="sourceFilter" name="source">
+                    <option value="">All Sources</option>
+                    <option value="auth" {% if request.args.get('source') == 'auth' %}selected{% endif %}>Authentication</option>
+                    <option value="threat_detection" {% if request.args.get('source') == 'threat_detection' %}selected{% endif %}>Threat Detection</option>
+                    <option value="remediation" {% if request.args.get('source') == 'remediation' %}selected{% endif %}>Remediation</option>
+                    <option value="user_activity" {% if request.args.get('source') == 'user_activity' %}selected{% endif %}>User Activity</option>
+                    <option value="system" {% if request.args.get('source') == 'system' %}selected{% endif %}>System</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="logTypeFilter" class="form-label">Log Type</label>
+                <select class="form-select" id="logTypeFilter" name="log_type">
+                    <option value="">All Types</option>
+                    <option value="login" {% if request.args.get('log_type') == 'login' %}selected{% endif %}>Login</option>
+                    <option value="login_failed" {% if request.args.get('log_type') == 'login_failed' %}selected{% endif %}>Failed Login</option>
+                    <option value="logout" {% if request.args.get('log_type') == 'logout' %}selected{% endif %}>Logout</option>
+                    <option value="network_scan" {% if request.args.get('log_type') == 'network_scan' %}selected{% endif %}>Network Scan</option>
+                    <option value="log_analysis" {% if request.args.get('log_type') == 'log_analysis' %}selected{% endif %}>Log Analysis</option>
+                    <option value="remediation_initiated" {% if request.args.get('log_type') == 'remediation_initiated' %}selected{% endif %}>Remediation Initiated</option>
+                    <option value="remediation_executed" {% if request.args.get('log_type') == 'remediation_executed' %}selected{% endif %}>Remediation Executed</option>
+                    <option value="status_change" {% if request.args.get('log_type') == 'status_change' %}selected{% endif %}>Status Change</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="severityFilter" class="form-label">Severity</label>
+                <select class="form-select" id="severityFilter" name="severity">
+                    <option value="">All Severities</option>
+                    <option value="critical" {% if request.args.get('severity') == 'critical' %}selected{% endif %}>Critical</option>
+                    <option value="error" {% if request.args.get('severity') == 'error' %}selected{% endif %}>Error</option>
+                    <option value="warning" {% if request.args.get('severity') == 'warning' %}selected{% endif %}>Warning</option>
+                    <option value="info" {% if request.args.get('severity') == 'info' %}selected{% endif %}>Info</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="dateFilter" class="form-label">Date Range</label>
+                <select class="form-select" id="dateFilter" name="date_range">
+                    <option value="24h" {% if request.args.get('date_range') == '24h' or not request.args.get('date_range') %}selected{% endif %}>Last 24 Hours</option>
+                    <option value="7d" {% if request.args.get('date_range') == '7d' %}selected{% endif %}>Last 7 Days</option>
+                    <option value="30d" {% if request.args.get('date_range') == '30d' %}selected{% endif %}>Last 30 Days</option>
+                    <option value="all" {% if request.args.get('date_range') == 'all' %}selected{% endif %}>All Time</option>
+                </select>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-filter"></i> Apply Filters
+                </button>
+                <a href="{{ url_for('logs') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times"></i> Clear Filters
+                </a>
+                <button type="button" class="btn btn-outline-primary float-end" data-bs-toggle="modal" data-bs-target="#logAnalysisModal">
+                    <i class="fas fa-search"></i> Analyze Logs
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Logs Table -->
+<div class="card bg-dark mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0"><i class="fas fa-list"></i> Security Logs</h5>
+        
+        <div class="btn-group">
+            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-download"></i> Export
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="#"><i class="fas fa-file-csv"></i> Export to CSV</a></li>
+                <li><a class="dropdown-item" href="#"><i class="fas fa-file-excel"></i> Export to Excel</a></li>
+                <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf"></i> Export to PDF</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-dark-themed table-hover table-striped mb-0">
+                <thead>
+                    <tr>
+                        <th width="15%">Timestamp</th>
+                        <th width="10%">Source</th>
+                        <th width="15%">Type</th>
+                        <th width="10%">Severity</th>
+                        <th width="10%">User</th>
+                        <th width="40%">Message</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs.items %}
+                    <tr class="log-detail-row">
+                        <td><small>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</small></td>
+                        <td>
+                            <span class="log-source">{{ log.source }}</span>
+                        </td>
+                        <td>{{ log.log_type|replace('_', ' ')|title }}</td>
+                        <td>
+                            <span class="badge {{ 'bg-danger' if log.severity == 'critical' else 'bg-warning text-dark' if log.severity == 'warning' else 'bg-danger' if log.severity == 'error' else 'bg-info text-dark' }}">
+                                {{ log.severity }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if log.user %}
+                                {{ log.user.username }}
+                            {% else %}
+                                <span class="text-muted">System</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ log.message }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center">No logs found matching the current filters</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                Showing {{ logs.items|length }} of {{ logs.total }} logs
+            </div>
+            
+            <nav aria-label="Log pagination">
+                <ul class="pagination mb-0">
+                    {% if logs.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('logs', page=logs.prev_num, **request.args) }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in logs.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            {% if page_num == logs.page %}
+                            <li class="page-item active">
+                                <a class="page-link" href="{{ url_for('logs', page=page_num, **request.args) }}">{{ page_num }}</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('logs', page=page_num, **request.args) }}">{{ page_num }}</a>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#">...</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if logs.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('logs', page=logs.next_num, **request.args) }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Log Statistics -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card bg-dark h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-chart-pie"></i> Logs by Source</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <!-- This chart would be populated with actual data in a real implementation -->
+                    <canvas id="logSourceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card bg-dark h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-chart-bar"></i> Logs by Severity</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <!-- This chart would be populated with actual data in a real implementation -->
+                    <canvas id="logSeverityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize log source chart
+        const logSourceCtx = document.getElementById('logSourceChart');
+        if (logSourceCtx) {
+            new Chart(logSourceCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Authentication', 'Threat Detection', 'Remediation', 'User Activity', 'System'],
+                    datasets: [{
+                        data: [25, 35, 15, 20, 5],
+                        backgroundColor: ['#0d6efd', '#dc3545', '#198754', '#ffc107', '#6c757d'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                color: '#fff'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Initialize log severity chart
+        const logSeverityCtx = document.getElementById('logSeverityChart');
+        if (logSeverityCtx) {
+            new Chart(logSeverityCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Info', 'Warning', 'Error', 'Critical'],
+                    datasets: [{
+                        label: 'Log Count',
+                        data: [65, 25, 8, 2],
+                        backgroundColor: ['#0dcaf0', '#ffc107', '#dc3545', '#9a0c20'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#fff'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#fff'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

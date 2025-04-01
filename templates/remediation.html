@@ -1,0 +1,325 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1 class="mb-4"><i class="fas fa-wrench"></i> Remediation Dashboard</h1>
+
+<!-- Remediation Summary Cards -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-dark metric-card critical">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-danger">Active Threats</h6>
+                        <h2 class="mb-0">{{ stats.active_threats }}</h2>
+                    </div>
+                    <div class="fs-1 text-danger">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <a href="{{ url_for('threats') }}?status=active" class="btn btn-sm btn-outline-danger">View All</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-dark metric-card high">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-warning">Pending Actions</h6>
+                        <h2 class="mb-0">{{ stats.pending_actions }}</h2>
+                    </div>
+                    <div class="fs-1 text-warning">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <a href="{{ url_for('remediation.remediation_history') }}?status=pending" class="btn btn-sm btn-outline-warning">View All</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-dark metric-card success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-success">Successful Remediations</h6>
+                        <h2 class="mb-0">{{ stats.successful_actions }}</h2>
+                    </div>
+                    <div class="fs-1 text-success">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <a href="{{ url_for('remediation.remediation_history') }}?status=completed" class="btn btn-sm btn-outline-success">View All</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-dark metric-card medium">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-info">Total Remediations</h6>
+                        <h2 class="mb-0">{{ stats.total_remediation_actions }}</h2>
+                    </div>
+                    <div class="fs-1 text-info">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <a href="{{ url_for('remediation.remediation_history') }}" class="btn btn-sm btn-outline-info">View History</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Active Threats Panel -->
+    <div class="col-md-8 mb-4">
+        <div class="card bg-dark">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0"><i class="fas fa-exclamation-triangle"></i> Active Threats Requiring Remediation</h5>
+                <a href="{{ url_for('threats') }}?status=active" class="btn btn-sm btn-outline-primary">View All Threats</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-dark-themed table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Threat</th>
+                                <th>Type</th>
+                                <th>Severity</th>
+                                <th>Detected</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for threat in active_threats %}
+                            <tr class="threat-row">
+                                <td>
+                                    <a href="{{ url_for('threat.threat_details', threat_id=threat.id) }}" class="text-decoration-none">
+                                        {{ threat.name }}
+                                    </a>
+                                </td>
+                                <td>{{ threat.threat_type|replace('_', ' ')|title }}</td>
+                                <td>
+                                    <span class="badge {{ 'bg-danger' if threat.severity == 'critical' else 'bg-warning text-dark' if threat.severity == 'high' else 'bg-info text-dark' if threat.severity == 'medium' else 'bg-success' }}">
+                                        {{ threat.severity }}
+                                    </span>
+                                </td>
+                                <td><small>{{ threat.date_detected.strftime('%Y-%m-%d %H:%M') }}</small></td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-primary remediation-action-btn" 
+                                            data-threat-id="{{ threat.id }}" 
+                                            data-action-type="block_ip" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#remediationModal">
+                                        <i class="fas fa-wrench"></i> Remediate
+                                    </button>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center">No active threats requiring remediation</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Remediation Statistics -->
+    <div class="col-md-4 mb-4">
+        <div class="card bg-dark h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-chart-pie"></i> Remediation Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="remediationChart"></canvas>
+                </div>
+                
+                <hr class="mt-4 mb-4">
+                
+                <h6 class="mb-3">Remediation Effectiveness</h6>
+                <div class="progress mb-3" style="height: 20px;">
+                    <div class="progress-bar bg-success" role="progressbar" 
+                         style="width: {{ (stats.successful_actions / stats.total_remediation_actions * 100) if stats.total_remediation_actions > 0 else 0 }}%;" 
+                         aria-valuenow="{{ (stats.successful_actions / stats.total_remediation_actions * 100) if stats.total_remediation_actions > 0 else 0 }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                        {{ ((stats.successful_actions / stats.total_remediation_actions * 100) if stats.total_remediation_actions > 0 else 0)|int }}%
+                    </div>
+                </div>
+                <small class="text-muted">Success rate of remediation actions</small>
+                
+                <div class="alert alert-info mt-4">
+                    <i class="fas fa-info-circle"></i> The system has automatically remediated 
+                    <strong>{{ stats.automated_actions }}</strong> threats in the last 7 days.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Remediation Actions -->
+<div class="card bg-dark mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0"><i class="fas fa-history"></i> Recent Remediation Actions</h5>
+        <a href="{{ url_for('remediation.remediation_history') }}" class="btn btn-sm btn-outline-primary">View Full History</a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-dark-themed table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Action Type</th>
+                        <th>Threat</th>
+                        <th>Status</th>
+                        <th>Automated</th>
+                        <th>Performed By</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for action in recent_actions %}
+                    <tr id="remediation-{{ action.id }}">
+                        <td><small>{{ action.date_performed.strftime('%Y-%m-%d %H:%M') }}</small></td>
+                        <td>{{ action.action_type|replace('_', ' ')|title }}</td>
+                        <td>
+                            {% if action.threat %}
+                            <a href="{{ url_for('threat.threat_details', threat_id=action.threat.id) }}" class="text-decoration-none">
+                                {{ action.threat.name }}
+                            </a>
+                            {% else %}
+                            <span class="text-muted">Unknown</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="status-badge badge {{ 'bg-success' if action.status == 'completed' else 'bg-warning text-dark' if action.status == 'pending' else 'bg-danger' if action.status == 'failed' else 'bg-secondary' }}">
+                                {{ action.status }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if action.is_automated %}
+                            <span class="badge bg-primary"><i class="fas fa-robot"></i> Auto</span>
+                            {% else %}
+                            <span class="badge bg-secondary"><i class="fas fa-user"></i> Manual</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if action.performed_by %}
+                            {{ action.performed_by.username }}
+                            {% else %}
+                            <span class="text-muted">System</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if action.status == 'pending' %}
+                            <button class="btn btn-sm btn-success" onclick="executeRemediationAction({{ action.id }})">
+                                <i class="fas fa-play"></i> Execute
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="cancelRemediationAction({{ action.id }})">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                            {% else %}
+                            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="popover" data-bs-title="Result" data-bs-content="{{ action.result }}">
+                                <i class="fas fa-info-circle"></i> Details
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center">No recent remediation actions</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Remediation Modal -->
+<div class="modal fade" id="remediationModal" tabindex="-1" aria-labelledby="remediationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="remediationModalLabel"><i class="fas fa-wrench"></i> Apply Remediation</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="remediationForm" onsubmit="return submitRemediationForm()">
+                    <input type="hidden" id="threatIdInput" name="threat_id">
+                    
+                    <div class="mb-3">
+                        <label for="actionTypeSelect" class="form-label">Remediation Action</label>
+                        <select class="form-select" id="actionTypeSelect" name="action_type" required>
+                            <option value="block_ip">Block IP Address</option>
+                            <option value="quarantine_file">Quarantine File</option>
+                            <option value="terminate_process">Terminate Process</option>
+                            <option value="update_firewall">Update Firewall Rules</option>
+                            <option value="patch_vulnerability">Apply Security Patch</option>
+                            <option value="reset_credentials">Reset Credentials</option>
+                            <option value="custom_action">Custom Remediation Script</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="automatedCheck" name="is_automated" checked>
+                        <label class="form-check-label" for="automatedCheck">Execute Automatically</label>
+                        <div class="form-text">If checked, the remediation will be executed immediately</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="detailsTextarea" class="form-label">Additional Details (Optional)</label>
+                        <textarea class="form-control" id="detailsTextarea" name="details" rows="3" placeholder="Add any specific details or notes about this remediation"></textarea>
+                    </div>
+                    
+                    <div id="remediationLoading" class="d-none text-center my-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Applying remediation action...</p>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> Warning: Applying remediation actions may affect system operations. Please ensure you understand the consequences before proceeding.
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check-circle"></i> Apply Remediation
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize remediation chart
+        const remediationCtx = document.getElementById('remediationChart');
+        if (remediationCtx) {
+            initRemediationChart();
+        }
+    });
+</script>
+{% endblock %}

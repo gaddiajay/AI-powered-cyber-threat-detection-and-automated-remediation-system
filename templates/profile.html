@@ -1,0 +1,163 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1 class="mb-4"><i class="fas fa-user"></i> User Profile</h1>
+
+<div class="row">
+    <!-- Profile Information -->
+    <div class="col-md-8">
+        <div class="card bg-dark mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-id-card"></i> Profile Information</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('profile') }}">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="firstName" class="form-label">First Name</label>
+                            <input type="text" class="form-control" id="firstName" name="first_name" value="{{ current_user.first_name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="lastName" class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="lastName" name="last_name" value="{{ current_user.last_name }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" value="{{ current_user.username }}" disabled>
+                        <div class="form-text">Username cannot be changed</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Role</label>
+                        <input type="text" class="form-control" id="role" value="{{ current_user.role|title }}" disabled>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="lastLogin" class="form-label">Last Login</label>
+                        <input type="text" class="form-control" id="lastLogin" value="{{ current_user.last_login.strftime('%Y-%m-%d %H:%M:%S') if current_user.last_login else 'Never' }}" disabled>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <h5 class="mb-3">Change Password</h5>
+                    <div class="mb-3">
+                        <label for="currentPassword" class="form-label">Current Password</label>
+                        <input type="password" class="form-control" id="currentPassword" name="current_password">
+                        <div class="form-text">Enter your current password to verify your identity</div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="newPassword" class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="newPassword" name="new_password">
+                            <div class="form-text">Password must be at least 8 characters long</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirmPassword" name="confirm_password">
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Leave password fields blank if you don't want to change your password.
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Update Profile
+                        </button>
+                        <button type="reset" class="btn btn-outline-secondary">
+                            <i class="fas fa-undo"></i> Reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- User Activity and Stats -->
+    <div class="col-md-4">
+        <div class="card bg-dark mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-chart-pie"></i> Activity Summary</h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush bg-dark">
+                    <li class="list-group-item bg-dark text-light d-flex justify-content-between">
+                        <span>Account Created:</span>
+                        <span class="text-end">{{ current_user.date_registered.strftime('%Y-%m-%d') }}</span>
+                    </li>
+                    <li class="list-group-item bg-dark text-light d-flex justify-content-between">
+                        <span>Threats Detected:</span>
+                        <span class="badge bg-danger rounded-pill">{{ stats.threats_detected|default(0) }}</span>
+                    </li>
+                    <li class="list-group-item bg-dark text-light d-flex justify-content-between">
+                        <span>Remediation Actions:</span>
+                        <span class="badge bg-primary rounded-pill">{{ stats.remediation_actions|default(0) }}</span>
+                    </li>
+                    <li class="list-group-item bg-dark text-light d-flex justify-content-between">
+                        <span>Scans Initiated:</span>
+                        <span class="badge bg-info text-dark rounded-pill">{{ stats.scans_initiated|default(0) }}</span>
+                    </li>
+                    <li class="list-group-item bg-dark text-light d-flex justify-content-between">
+                        <span>Login Count:</span>
+                        <span class="badge bg-secondary rounded-pill">{{ stats.login_count|default(0) }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card bg-dark mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-shield-alt"></i> Security Recommendations</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-key"></i> <strong>Enable Two-Factor Authentication</strong>
+                    <p class="mt-2 mb-0 small">Secure your account with an additional layer of protection.</p>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-sync-alt"></i> <strong>Update your password regularly</strong>
+                    <p class="mt-2 mb-0 small">It's been 30+ days since your last password change.</p>
+                </div>
+                
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> <strong>Account in good standing</strong>
+                    <p class="mt-2 mb-0 small">Your account is active and has all necessary permissions.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card bg-dark">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-history"></i> Recent Activity</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for activity in user_activities %}
+                    <div class="list-group-item bg-dark text-light border-light-subtle">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ activity.type }}</h6>
+                            <small class="text-muted">{{ activity.timestamp|timeago }}</small>
+                        </div>
+                        <p class="mb-1 small">{{ activity.message }}</p>
+                    </div>
+                    {% else %}
+                    <div class="list-group-item bg-dark text-light border-light-subtle">
+                        <p class="mb-0 text-center">No recent activity</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

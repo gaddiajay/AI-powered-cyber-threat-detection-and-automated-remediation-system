@@ -1,0 +1,306 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1 class="mb-4"><i class="fas fa-bug"></i> Threat Management</h1>
+
+<!-- Filters and Actions Row -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card bg-dark">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Filter Threats</h5>
+                <form method="GET" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="severityFilter" class="form-label">Severity</label>
+                        <select class="form-select" id="severityFilter" name="severity">
+                            <option value="">All Severities</option>
+                            <option value="critical" {% if request.args.get('severity') == 'critical' %}selected{% endif %}>Critical</option>
+                            <option value="high" {% if request.args.get('severity') == 'high' %}selected{% endif %}>High</option>
+                            <option value="medium" {% if request.args.get('severity') == 'medium' %}selected{% endif %}>Medium</option>
+                            <option value="low" {% if request.args.get('severity') == 'low' %}selected{% endif %}>Low</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="statusFilter" class="form-label">Status</label>
+                        <select class="form-select" id="statusFilter" name="status">
+                            <option value="">All Statuses</option>
+                            <option value="active" {% if request.args.get('status') == 'active' %}selected{% endif %}>Active</option>
+                            <option value="investigating" {% if request.args.get('status') == 'investigating' %}selected{% endif %}>Investigating</option>
+                            <option value="remediated" {% if request.args.get('status') == 'remediated' %}selected{% endif %}>Remediated</option>
+                            <option value="false_positive" {% if request.args.get('status') == 'false_positive' %}selected{% endif %}>False Positive</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="typeFilter" class="form-label">Type</label>
+                        <select class="form-select" id="typeFilter" name="type">
+                            <option value="">All Types</option>
+                            <option value="malware" {% if request.args.get('type') == 'malware' %}selected{% endif %}>Malware</option>
+                            <option value="ransomware" {% if request.args.get('type') == 'ransomware' %}selected{% endif %}>Ransomware</option>
+                            <option value="ddos" {% if request.args.get('type') == 'ddos' %}selected{% endif %}>DDoS</option>
+                            <option value="intrusion" {% if request.args.get('type') == 'intrusion' %}selected{% endif %}>Intrusion</option>
+                            <option value="port_scan" {% if request.args.get('type') == 'port_scan' %}selected{% endif %}>Port Scan</option>
+                            <option value="brute_force" {% if request.args.get('type') == 'brute_force' %}selected{% endif %}>Brute Force</option>
+                            <option value="backdoor" {% if request.args.get('type') == 'backdoor' %}selected{% endif %}>Backdoor</option>
+                            <option value="sql_injection" {% if request.args.get('type') == 'sql_injection' %}selected{% endif %}>SQL Injection</option>
+                            <option value="xss" {% if request.args.get('type') == 'xss' %}selected{% endif %}>XSS</option>
+                            <option value="data_exfiltration" {% if request.args.get('type') == 'data_exfiltration' %}selected{% endif %}>Data Exfiltration</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="dateFilter" class="form-label">Date Range</label>
+                        <select class="form-select" id="dateFilter" name="date_range">
+                            <option value="">All Time</option>
+                            <option value="24h" {% if request.args.get('date_range') == '24h' %}selected{% endif %}>Last 24 Hours</option>
+                            <option value="7d" {% if request.args.get('date_range') == '7d' %}selected{% endif %}>Last 7 Days</option>
+                            <option value="30d" {% if request.args.get('date_range') == '30d' %}selected{% endif %}>Last 30 Days</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter"></i> Apply Filters
+                        </button>
+                        <a href="{{ url_for('threats') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i> Clear Filters
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card bg-dark h-100">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Quick Actions</h5>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#networkScanModal">
+                        <i class="fas fa-network-wired"></i> Network Scan
+                    </button>
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#logAnalysisModal">
+                        <i class="fas fa-search"></i> Log Analysis
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Threats List -->
+<div class="card bg-dark mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0"><i class="fas fa-list"></i> Threats</h5>
+        
+        <div class="btn-group">
+            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-sort"></i> Sort By
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="{{ url_for('threats', **request.args, sort='date', order='desc') }}">Date (Newest)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('threats', **request.args, sort='date', order='asc') }}">Date (Oldest)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('threats', **request.args, sort='severity', order='desc') }}">Severity (High-Low)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('threats', **request.args, sort='severity', order='asc') }}">Severity (Low-High)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('threats', **request.args, sort='confidence', order='desc') }}">Confidence (High-Low)</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-dark-themed table-hover table-striped mb-0">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Severity</th>
+                        <th>Status</th>
+                        <th>Confidence</th>
+                        <th>Source IP</th>
+                        <th>Detected</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for threat in threats.items %}
+                    <tr id="threat-{{ threat.id }}" class="threat-row">
+                        <td>
+                            <a href="{{ url_for('threat.threat_details', threat_id=threat.id) }}" class="text-decoration-none">
+                                {{ threat.name }}
+                            </a>
+                        </td>
+                        <td>{{ threat.threat_type|replace('_', ' ')|title }}</td>
+                        <td>
+                            <span class="badge {{ 'bg-danger' if threat.severity == 'critical' else 'bg-warning text-dark' if threat.severity == 'high' else 'bg-info text-dark' if threat.severity == 'medium' else 'bg-success' }}">
+                                {{ threat.severity }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="status-badge badge {{ 'bg-danger' if threat.status == 'active' else 'bg-warning text-dark' if threat.status == 'investigating' else 'bg-success' if threat.status == 'remediated' else 'bg-info text-dark' }}">
+                                {{ threat.status }}
+                            </span>
+                        </td>
+                        <td>{{ (threat.confidence * 100)|int }}%</td>
+                        <td>{{ threat.source_ip }}</td>
+                        <td>{{ threat.date_detected.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td class="text-end">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Actions
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="{{ url_for('threat.threat_details', threat_id=threat.id) }}">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    
+                                    {% if threat.status != 'investigating' %}
+                                    <li><a class="dropdown-item threat-status-btn" href="#" data-threat-id="{{ threat.id }}" data-status="investigating">
+                                        <i class="fas fa-search"></i> Mark as Investigating
+                                    </a></li>
+                                    {% endif %}
+                                    
+                                    {% if threat.status != 'remediated' %}
+                                    <li><a class="dropdown-item threat-status-btn" href="#" data-threat-id="{{ threat.id }}" data-status="remediated">
+                                        <i class="fas fa-check-circle"></i> Mark as Remediated
+                                    </a></li>
+                                    {% endif %}
+                                    
+                                    {% if threat.status != 'false_positive' %}
+                                    <li><a class="dropdown-item threat-status-btn" href="#" data-threat-id="{{ threat.id }}" data-status="false_positive">
+                                        <i class="fas fa-ban"></i> Mark as False Positive
+                                    </a></li>
+                                    {% endif %}
+                                    
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item remediation-action-btn" href="#" data-threat-id="{{ threat.id }}" data-action-type="block_ip">
+                                        <i class="fas fa-shield-alt"></i> Apply Remediation
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center">No threats found matching the current filters</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                Showing {{ threats.items|length }} of {{ threats.total }} threats
+            </div>
+            
+            <nav aria-label="Threat pagination">
+                <ul class="pagination mb-0">
+                    {% if threats.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('threats', page=threats.prev_num, **request.args) }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in threats.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            {% if page_num == threats.page %}
+                            <li class="page-item active">
+                                <a class="page-link" href="{{ url_for('threats', page=page_num, **request.args) }}">{{ page_num }}</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('threats', page=page_num, **request.args) }}">{{ page_num }}</a>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#">...</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if threats.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('threats', page=threats.next_num, **request.args) }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Remediation Modal -->
+<div class="modal fade" id="remediationModal" tabindex="-1" aria-labelledby="remediationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="remediationModalLabel"><i class="fas fa-wrench"></i> Apply Remediation</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="remediationForm" onsubmit="return submitRemediationForm()">
+                    <input type="hidden" id="threatIdInput" name="threat_id">
+                    
+                    <div class="mb-3">
+                        <label for="actionTypeSelect" class="form-label">Remediation Action</label>
+                        <select class="form-select" id="actionTypeSelect" name="action_type" required>
+                            <option value="block_ip">Block IP Address</option>
+                            <option value="quarantine_file">Quarantine File</option>
+                            <option value="terminate_process">Terminate Process</option>
+                            <option value="update_firewall">Update Firewall Rules</option>
+                            <option value="patch_vulnerability">Apply Security Patch</option>
+                            <option value="reset_credentials">Reset Credentials</option>
+                            <option value="custom_action">Custom Remediation Script</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="automatedCheck" name="is_automated" checked>
+                        <label class="form-check-label" for="automatedCheck">Execute Automatically</label>
+                        <div class="form-text">If checked, the remediation will be executed immediately</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="detailsTextarea" class="form-label">Additional Details (Optional)</label>
+                        <textarea class="form-control" id="detailsTextarea" name="details" rows="3" placeholder="Add any specific details or notes about this remediation"></textarea>
+                    </div>
+                    
+                    <div id="remediationLoading" class="d-none text-center my-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Applying remediation action...</p>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> Warning: Applying remediation actions may affect system operations. Please ensure you understand the consequences before proceeding.
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check-circle"></i> Apply Remediation
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

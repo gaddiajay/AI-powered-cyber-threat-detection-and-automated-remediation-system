@@ -1,0 +1,362 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-history"></i> Remediation History</h1>
+    <a href="{{ url_for('remediation.remediation_dashboard') }}" class="btn btn-outline-primary">
+        <i class="fas fa-arrow-left"></i> Back to Remediation Dashboard
+    </a>
+</div>
+
+<!-- Filters Row -->
+<div class="card bg-dark mb-4">
+    <div class="card-body">
+        <h5 class="card-title mb-3">Filter Remediation Actions</h5>
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label for="actionTypeFilter" class="form-label">Action Type</label>
+                <select class="form-select" id="actionTypeFilter" name="action_type">
+                    <option value="">All Types</option>
+                    <option value="block_ip" {% if request.args.get('action_type') == 'block_ip' %}selected{% endif %}>Block IP</option>
+                    <option value="quarantine_file" {% if request.args.get('action_type') == 'quarantine_file' %}selected{% endif %}>Quarantine File</option>
+                    <option value="terminate_process" {% if request.args.get('action_type') == 'terminate_process' %}selected{% endif %}>Terminate Process</option>
+                    <option value="update_firewall" {% if request.args.get('action_type') == 'update_firewall' %}selected{% endif %}>Update Firewall</option>
+                    <option value="patch_vulnerability" {% if request.args.get('action_type') == 'patch_vulnerability' %}selected{% endif %}>Patch Vulnerability</option>
+                    <option value="reset_credentials" {% if request.args.get('action_type') == 'reset_credentials' %}selected{% endif %}>Reset Credentials</option>
+                    <option value="custom_action" {% if request.args.get('action_type') == 'custom_action' %}selected{% endif %}>Custom Action</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="statusFilter" class="form-label">Status</label>
+                <select class="form-select" id="statusFilter" name="status">
+                    <option value="">All Statuses</option>
+                    <option value="pending" {% if request.args.get('status') == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="completed" {% if request.args.get('status') == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="failed" {% if request.args.get('status') == 'failed' %}selected{% endif %}>Failed</option>
+                    <option value="cancelled" {% if request.args.get('status') == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="automatedFilter" class="form-label">Execution Type</label>
+                <select class="form-select" id="automatedFilter" name="automated">
+                    <option value="">All Types</option>
+                    <option value="true" {% if request.args.get('automated') == 'true' %}selected{% endif %}>Automated</option>
+                    <option value="false" {% if request.args.get('automated') == 'false' %}selected{% endif %}>Manual</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="dateFilter" class="form-label">Date Range</label>
+                <select class="form-select" id="dateFilter" name="date_range">
+                    <option value="7d" {% if request.args.get('date_range') == '7d' or not request.args.get('date_range') %}selected{% endif %}>Last 7 Days</option>
+                    <option value="30d" {% if request.args.get('date_range') == '30d' %}selected{% endif %}>Last 30 Days</option>
+                    <option value="90d" {% if request.args.get('date_range') == '90d' %}selected{% endif %}>Last 90 Days</option>
+                    <option value="all" {% if request.args.get('date_range') == 'all' %}selected{% endif %}>All Time</option>
+                </select>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-filter"></i> Apply Filters
+                </button>
+                <a href="{{ url_for('remediation.remediation_history') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times"></i> Clear Filters
+                </a>
+                <div class="btn-group float-end">
+                    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-file-csv"></i> Export to CSV</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-file-excel"></i> Export to Excel</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf"></i> Export to PDF</a></li>
+                    </ul>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Remediation Actions Table -->
+<div class="card bg-dark mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0"><i class="fas fa-wrench"></i> Remediation Actions</h5>
+        <span class="badge bg-primary">{{ actions.total }} Total Actions</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-dark-themed table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Action Type</th>
+                        <th>Threat</th>
+                        <th>Status</th>
+                        <th>Automated</th>
+                        <th>Performed By</th>
+                        <th>Result</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for action in actions.items %}
+                    <tr id="remediation-{{ action.id }}">
+                        <td><small>{{ action.date_performed.strftime('%Y-%m-%d %H:%M') }}</small></td>
+                        <td>{{ action.action_type|replace('_', ' ')|title }}</td>
+                        <td>
+                            {% if action.threat %}
+                            <a href="{{ url_for('threat.threat_details', threat_id=action.threat.id) }}" class="text-decoration-none">
+                                {{ action.threat.name }}
+                            </a>
+                            {% else %}
+                            <span class="text-muted">Unknown</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="status-badge badge {{ 'bg-success' if action.status == 'completed' else 'bg-warning text-dark' if action.status == 'pending' else 'bg-danger' if action.status == 'failed' else 'bg-secondary' }}">
+                                {{ action.status }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if action.is_automated %}
+                            <span class="badge bg-primary"><i class="fas fa-robot"></i> Auto</span>
+                            {% else %}
+                            <span class="badge bg-secondary"><i class="fas fa-user"></i> Manual</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if action.performed_by %}
+                            {{ action.performed_by.username }}
+                            {% else %}
+                            <span class="text-muted">System</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="text-truncate d-inline-block" style="max-width: 200px;">
+                                {{ action.result or 'Pending execution' }}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            {% if action.status == 'pending' %}
+                            <button class="btn btn-sm btn-success" onclick="executeRemediationAction({{ action.id }})">
+                                <i class="fas fa-play"></i> Execute
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="cancelRemediationAction({{ action.id }})">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                            {% else %}
+                            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="popover" data-bs-title="Result" data-bs-content="{{ action.result }}">
+                                <i class="fas fa-info-circle"></i> Details
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center">No remediation actions found matching the current filters</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                Showing {{ actions.items|length }} of {{ actions.total }} remediation actions
+            </div>
+            
+            <nav aria-label="Remediation action pagination">
+                <ul class="pagination mb-0">
+                    {% if actions.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('remediation.remediation_history', page=actions.prev_num, **request.args) }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in actions.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            {% if page_num == actions.page %}
+                            <li class="page-item active">
+                                <a class="page-link" href="{{ url_for('remediation.remediation_history', page=page_num, **request.args) }}">{{ page_num }}</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('remediation.remediation_history', page=page_num, **request.args) }}">{{ page_num }}</a>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#">...</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if actions.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('remediation.remediation_history', page=actions.next_num, **request.args) }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card bg-dark">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-chart-pie"></i> Actions by Type</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="actionTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card bg-dark">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-chart-line"></i> Actions Over Time</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="actionsTimelineChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize action type chart
+        const actionTypeCtx = document.getElementById('actionTypeChart');
+        if (actionTypeCtx) {
+            new Chart(actionTypeCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Block IP', 'Quarantine File', 'Terminate Process', 'Update Firewall', 'Patch Vulnerability', 'Reset Credentials', 'Custom Action'],
+                    datasets: [{
+                        data: [15, 12, 8, 10, 5, 7, 3],
+                        backgroundColor: [
+                            '#dc3545', // danger
+                            '#ffc107', // warning
+                            '#0dcaf0', // info
+                            '#198754', // success
+                            '#0d6efd', // primary
+                            '#6c757d', // secondary
+                            '#6f42c1'  // purple
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                color: '#fff'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Initialize actions timeline chart
+        const timelineCtx = document.getElementById('actionsTimelineChart');
+        if (timelineCtx) {
+            // Generate dates for the last 7 days
+            const dates = [];
+            const now = new Date();
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(now.getDate() - i);
+                dates.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+            }
+            
+            // Sample data for demonstration
+            const completedActions = [5, 8, 4, 6, 9, 7, 10];
+            const failedActions = [1, 2, 0, 1, 3, 1, 2];
+            
+            new Chart(timelineCtx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Completed',
+                            data: completedActions,
+                            borderColor: '#198754',
+                            backgroundColor: 'rgba(25, 135, 84, 0.2)',
+                            tension: 0.1,
+                            fill: true
+                        },
+                        {
+                            label: 'Failed',
+                            data: failedActions,
+                            borderColor: '#dc3545',
+                            backgroundColor: 'rgba(220, 53, 69, 0.2)',
+                            tension: 0.1,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#fff'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#fff'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#fff'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,281 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div id="dashboard-metrics">
+    <h1 class="mb-4"><i class="fas fa-tachometer-alt"></i> Security Dashboard</h1>
+    
+    <!-- Security Overview Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-dark metric-card critical">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-danger">Critical Threats</h6>
+                            <h2 class="mb-0">{{ stats.critical_threats }}</h2>
+                        </div>
+                        <div class="fs-1 text-danger">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <a href="{{ url_for('threats') }}?severity=critical" class="btn btn-sm btn-outline-danger">View All</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-dark metric-card high">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-warning">Active Threats</h6>
+                            <h2 class="mb-0">{{ stats.total_threats - stats.remediated_threats }}</h2>
+                        </div>
+                        <div class="fs-1 text-warning">
+                            <i class="fas fa-bug"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <a href="{{ url_for('threats') }}?status=active" class="btn btn-sm btn-outline-warning">View All</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-dark metric-card success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-success">Remediated</h6>
+                            <h2 class="mb-0">{{ stats.remediated_threats }}</h2>
+                        </div>
+                        <div class="fs-1 text-success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <a href="{{ url_for('threats') }}?status=remediated" class="btn btn-sm btn-outline-success">View All</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-dark metric-card medium">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-info">Total Threats</h6>
+                            <h2 class="mb-0">{{ stats.total_threats }}</h2>
+                        </div>
+                        <div class="fs-1 text-info">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <a href="{{ url_for('threats') }}" class="btn btn-sm btn-outline-info">View All</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card bg-dark h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-chart-pie"></i> Threats by Severity</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="threatSeverityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <div class="card bg-dark h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-chart-bar"></i> Threats by Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="threatStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Threats and Alerts -->
+    <div class="row">
+        <!-- Recent Threats -->
+        <div class="col-md-6 mb-4">
+            <div class="card bg-dark">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0"><i class="fas fa-exclamation-circle"></i> Recent Threats</h5>
+                    <a href="{{ url_for('threats') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-dark-themed table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Threat</th>
+                                    <th>Severity</th>
+                                    <th>Status</th>
+                                    <th>Detected</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for threat in threats %}
+                                <tr class="threat-row">
+                                    <td>
+                                        <a href="{{ url_for('threat.threat_details', threat_id=threat.id) }}" class="text-decoration-none">
+                                            {{ threat.name }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="badge {{ 'bg-danger' if threat.severity == 'critical' else 'bg-warning text-dark' if threat.severity == 'high' else 'bg-info text-dark' if threat.severity == 'medium' else 'bg-success' }}">
+                                            {{ threat.severity }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge {{ 'bg-danger' if threat.status == 'active' else 'bg-warning text-dark' if threat.status == 'investigating' else 'bg-success' if threat.status == 'remediated' else 'bg-info text-dark' }}">
+                                            {{ threat.status }}
+                                        </span>
+                                    </td>
+                                    <td><small>{{ threat.date_detected.strftime('%Y-%m-%d %H:%M') }}</small></td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center">No threats detected</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Alerts -->
+        <div class="col-md-6 mb-4">
+            <div class="card bg-dark">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-bell"></i> Recent Alerts</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush activity-feed">
+                        {% for alert in alerts %}
+                        <div class="list-group-item bg-dark text-light border-light-subtle activity-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ alert.title }}</h6>
+                                <small class="text-muted">{{ alert.date_created.strftime('%H:%M') }}</small>
+                            </div>
+                            <p class="mb-1 small">{{ alert.description }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge {{ 'bg-danger' if alert.priority == 'critical' else 'bg-warning text-dark' if alert.priority == 'high' else 'bg-info text-dark' if alert.priority == 'medium' else 'bg-success' }}">
+                                    {{ alert.priority }}
+                                </span>
+                                <a href="{{ url_for('threat.threat_details', threat_id=alert.threat_id) }}" class="btn btn-sm btn-outline-primary">View</a>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="list-group-item bg-dark text-light border-light-subtle">
+                            <p class="mb-0 text-center">No recent alerts</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Additional Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card bg-dark">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-chart-line"></i> Threat Timeline (Last 7 Days)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="threatTimelineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <div class="card bg-dark">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-chart-bar"></i> Threats by Type</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="threatTypeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Security Actions -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card bg-dark">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-shield-alt"></i> Security Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="d-grid">
+                                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#networkScanModal">
+                                    <i class="fas fa-network-wired"></i> Network Scan
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="d-grid">
+                                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#logAnalysisModal">
+                                    <i class="fas fa-search"></i> Log Analysis
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="d-grid">
+                                <a href="{{ url_for('remediation.remediation_dashboard') }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-wrench"></i> Remediation
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="d-grid">
+                                <a href="{{ url_for('settings') }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-cog"></i> System Settings
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load all dashboard charts
+        loadDashboardCharts();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if title %}{{ title }} - {% endif %}AI-Powered Cyber Threat Detection</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.0.1/dist/chart.umd.min.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+</head>
+<body>
+    <!-- Toast container for notifications -->
+    <div id="toastContainer"></div>
+    
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+                <i class="fas fa-shield-alt text-primary"></i>
+                <span>CyberGuard AI</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/threats' %}active{% endif %}" href="{{ url_for('threats') }}">
+                            <i class="fas fa-bug"></i> Threats
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/remediation' %}active{% endif %}" href="{{ url_for('remediation.remediation_dashboard') }}">
+                            <i class="fas fa-wrench"></i> Remediation
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/logs' %}active{% endif %}" href="{{ url_for('logs') }}">
+                            <i class="fas fa-clipboard-list"></i> Logs
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+                
+                <ul class="navbar-nav">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle"></i> {{ current_user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('profile') }}"><i class="fas fa-id-card"></i> Profile</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/login' %}active{% endif %}" href="{{ url_for('auth.login') }}">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/register' %}active{% endif %}" href="{{ url_for('auth.register') }}">
+                            <i class="fas fa-user-plus"></i> Register
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <div class="container-fluid mt-3">
+        <div class="row">
+            {% if current_user.is_authenticated and request.path != '/login' and request.path != '/register' %}
+            <!-- Sidebar -->
+            <div class="col-md-2 d-none d-md-block bg-dark sidebar">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.path == '/dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.path == '/threats' %}active{% endif %}" href="{{ url_for('threats') }}">
+                                <i class="fas fa-bug"></i> Threat Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if '/remediation' in request.path %}active{% endif %}" href="{{ url_for('remediation.remediation_dashboard') }}">
+                                <i class="fas fa-wrench"></i> Remediation
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.path == '/logs' %}active{% endif %}" href="{{ url_for('logs') }}">
+                                <i class="fas fa-clipboard-list"></i> Security Logs
+                            </a>
+                        </li>
+                        <li class="nav-header mt-3 text-muted ps-3 small">ANALYSIS TOOLS</li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#networkScanModal">
+                                <i class="fas fa-network-wired"></i> Network Scan
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#logAnalysisModal">
+                                <i class="fas fa-search"></i> Log Analysis
+                            </a>
+                        </li>
+                        <li class="nav-header mt-3 text-muted ps-3 small">SETTINGS</li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.path == '/settings' %}active{% endif %}" href="{{ url_for('settings') }}">
+                                <i class="fas fa-cog"></i> System Settings
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.path == '/profile' %}active{% endif %}" href="{{ url_for('profile') }}">
+                                <i class="fas fa-user"></i> User Profile
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Main Content Area -->
+            <div class="col-md-10 ms-sm-auto px-md-4">
+            {% else %}
+            <!-- Full Width Content (Login/Register) -->
+            <div class="col-12">
+            {% endif %}
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show mt-3" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <!-- Page Content -->
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Network Scan Modal -->
+    <div class="modal fade" id="networkScanModal" tabindex="-1" aria-labelledby="networkScanModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="networkScanModalLabel"><i class="fas fa-network-wired"></i> Network Security Scan</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="networkScanForm">
+                        <div class="mb-3">
+                            <label for="scanType" class="form-label">Scan Type</label>
+                            <select class="form-select" id="scanType" name="scan_type">
+                                <option value="quick">Quick Scan</option>
+                                <option value="deep">Deep Scan</option>
+                                <option value="comprehensive">Comprehensive Scan</option>
+                            </select>
+                            <div class="form-text">Select the type of network scan to perform</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="targetIP" class="form-label">Target IP/Network</label>
+                            <input type="text" class="form-control" id="targetIP" name="target_ip" placeholder="Leave empty for all">
+                            <div class="form-text">Specify a target IP or network range (optional)</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Start Scan</button>
+                    </form>
+                    
+                    <div id="scanResults" class="mt-4"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Log Analysis Modal -->
+    <div class="modal fade" id="logAnalysisModal" tabindex="-1" aria-labelledby="logAnalysisModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="logAnalysisModalLabel"><i class="fas fa-search"></i> Security Log Analysis</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="logAnalysisForm">
+                        <div class="mb-3">
+                            <label for="logSource" class="form-label">Log Source</label>
+                            <select class="form-select" id="logSource" name="log_source">
+                                <option value="all">All Sources</option>
+                                <option value="authentication">Authentication Logs</option>
+                                <option value="network">Network Logs</option>
+                                <option value="system">System Logs</option>
+                                <option value="application">Application Logs</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="timeRange" class="form-label">Time Range</label>
+                            <select class="form-select" id="timeRange" name="time_range">
+                                <option value="1h">Last Hour</option>
+                                <option value="24h" selected>Last 24 Hours</option>
+                                <option value="7d">Last 7 Days</option>
+                                <option value="30d">Last 30 Days</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Analyze Logs</button>
+                    </form>
+                    
+                    <div id="analysisResults" class="mt-4"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+    
+    <!-- Page-specific scripts -->
+    {% block scripts %}{% endblock %}
+</body>
+</html>

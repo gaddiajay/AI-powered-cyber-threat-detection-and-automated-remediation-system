@@ -1,0 +1,273 @@
+/* Custom styles for Cyber Threat Detection System */
+
+/* Dashboard metrics and stat cards */
+.metric-card {
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.metric-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.metric-card.critical {
+    border-left-color: var(--bs-danger);
+}
+
+.metric-card.high {
+    border-left-color: var(--bs-warning);
+}
+
+.metric-card.medium {
+    border-left-color: var(--bs-info);
+}
+
+.metric-card.low {
+    border-left-color: var(--bs-success);
+}
+
+.metric-card.success {
+    border-left-color: var(--bs-success);
+}
+
+/* Threat indicators */
+.threat-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.threat-indicator.critical {
+    background-color: var(--bs-danger);
+}
+
+.threat-indicator.high {
+    background-color: var(--bs-warning);
+}
+
+.threat-indicator.medium {
+    background-color: var(--bs-info);
+}
+
+.threat-indicator.low {
+    background-color: var(--bs-success);
+}
+
+/* Chart containers */
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin-bottom: 20px;
+}
+
+/* Navbar */
+.navbar-brand img {
+    margin-right: 10px;
+}
+
+.navbar-nav .nav-link.active {
+    border-bottom: 2px solid var(--bs-primary);
+}
+
+/* Sidebar */
+.sidebar {
+    height: 100%;
+    min-height: calc(100vh - 56px);
+}
+
+.sidebar .nav-link {
+    color: rgba(255, 255, 255, 0.8);
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+
+.sidebar .nav-link:hover {
+    color: rgba(255, 255, 255, 1);
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar .nav-link.active {
+    color: #fff;
+    background-color: var(--bs-primary);
+}
+
+.sidebar .nav-link i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+/* Threat list animations */
+.threat-row {
+    transition: all 0.2s ease;
+}
+
+.threat-row:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Threat details page */
+.threat-details-header {
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.threat-details-header.critical {
+    background-color: rgba(220, 53, 69, 0.2);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.threat-details-header.high {
+    background-color: rgba(255, 193, 7, 0.2);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.threat-details-header.medium {
+    background-color: rgba(13, 202, 240, 0.2);
+    border: 1px solid rgba(13, 202, 240, 0.3);
+}
+
+.threat-details-header.low {
+    background-color: rgba(25, 135, 84, 0.2);
+    border: 1px solid rgba(25, 135, 84, 0.3);
+}
+
+/* Indicators detail styling */
+.indicators-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.indicators-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.indicators-list li:last-child {
+    border-bottom: none;
+}
+
+/* Settings page */
+.settings-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.settings-section:last-child {
+    border-bottom: none;
+}
+
+/* Login and registration pages */
+.auth-container {
+    max-width: 450px;
+    margin: 50px auto;
+}
+
+.auth-card {
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Smaller chart for dashboard cards */
+.mini-chart {
+    height: 100px;
+}
+
+/* Custom table styles */
+.table-dark-themed {
+    background-color: #2b3035;
+    color: #fff;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.table-dark-themed thead {
+    background-color: #212529;
+}
+
+/* Loading indicators */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    border-radius: 5px;
+}
+
+/* Toast container */
+#toastContainer {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1060;
+}
+
+/* Log details */
+.log-detail-row:nth-child(odd) {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.log-source {
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+
+/* Dashboard activity feed */
+.activity-feed {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    position: relative;
+    padding-left: 30px;
+}
+
+.activity-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 8px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--bs-primary);
+}
+
+.activity-item::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 18px;
+    bottom: -10px;
+    width: 2px;
+    background-color: rgba(13, 110, 253, 0.5);
+}
+
+.activity-item:last-child::after {
+    display: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767.98px) {
+    .chart-container {
+        height: 250px;
+    }
+    
+    .sidebar {
+        min-height: auto;
+    }
+}
