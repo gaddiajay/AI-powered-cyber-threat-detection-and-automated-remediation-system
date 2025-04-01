@@ -1,0 +1,38 @@
+# Required Python Packages for AI-Powered Cyber Threat Detection System
+
+# Core dependencies
+Flask==2.3.3
+Flask-Login==0.6.2
+Flask-SQLAlchemy==3.1.1
+Flask-WTF==1.1.1
+Werkzeug==2.3.7
+SQLAlchemy==2.0.22
+email-validator==2.0.0
+WTForms==3.0.1
+gunicorn==21.2.0
+
+# Database drivers
+pymysql==1.1.0  # For MySQL with XAMPP
+psycopg2-binary==2.9.7  # For PostgreSQL
+
+# Cryptography
+pycryptodome==3.19.0
+cryptography==41.0.4
+
+# Data processing and machine learning
+numpy==1.25.2
+pandas==2.1.1
+scikit-learn==1.3.1
+joblib==1.3.2
+
+# Visualization
+matplotlib==3.8.0
+plotly==5.17.0
+
+# Utilities
+python-dotenv==1.0.0
+Jinja2==3.1.2
+markupsafe==2.1.3
+
+# Install command
+# pip install Flask Flask-Login Flask-SQLAlchemy Flask-WTF Werkzeug SQLAlchemy email-validator WTForms gunicorn pymysql psycopg2-binary pycryptodome cryptography numpy pandas scikit-learn joblib matplotlib plotly python-dotenv Jinja2 markupsafe

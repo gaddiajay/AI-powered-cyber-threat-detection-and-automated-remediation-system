@@ -19,17 +19,21 @@ class Base(DeclarativeBase):
 
 db = SQLAlchemy(model_class=Base)
 
+# Import configuration
+from config import config
+
 # Create Flask app
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-replace-in-production")
 
-# Configure database
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///cybersecurity.db")
+# Load configuration - use 'xampp' for XAMPP with MySQL, 'development' for SQLite
+config_name = os.environ.get('FLASK_CONFIG', 'development')
+app.config.from_object(config[config_name])
+
+# Add additional database options
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
 }
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Initialize database with app
 db.init_app(app)
@@ -132,7 +136,23 @@ def settings():
     if not current_user.is_authenticated:
         return redirect(url_for('auth.login'))
     
-    return render_template('settings.html', title='System Settings')
+    # Get system settings or use default values
+    system_settings = {
+        'scan_frequency': 'daily',
+        'threat_sensitivity': 'medium',
+        'auto_remediation': False,
+        'notification_email': current_user.email if current_user.is_authenticated else ''
+    }
+    
+    # Get actual settings from database if available
+    db_settings = models.SystemSettings.query.all()
+    for setting in db_settings:
+        system_settings[setting.setting_name] = setting.setting_value
+    
+    return render_template('settings.html', 
+                          title='System Settings', 
+                          system_settings=system_settings,
+                          timedelta=timedelta)
 
 @app.route('/profile')
 def profile():
@@ -187,7 +207,7 @@ def threat_summary():
     })
 
 # Threat prediction route
-@app.route('/predict-threats', methods=['POST'])
+@app.route('/predict_threats', methods=['POST'])
 @login_required
 def predict_threats():
     """Generate threat predictions based on the provided parameters"""

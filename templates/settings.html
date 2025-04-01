@@ -171,7 +171,10 @@
                     </li>
                     <li class="list-group-item bg-dark text-light d-flex justify-content-between">
                         <span>Next Scheduled Scan:</span>
-                        <span class="text-end">{{ (now + {'hourly': 3600, 'daily': 86400, 'weekly': 604800, 'disabled': 0}[system_setting.get('scan_frequency', 'daily')] | int) | datetime }}</span>
+                        <span class="text-end">
+                          {% set seconds = {'hourly': 3600, 'daily': 86400, 'weekly': 604800, 'disabled': 0}[system_settings.get('scan_frequency', 'daily')] %}
+                          {{ (now + timedelta(seconds=seconds)).strftime('%Y-%m-%d %H:%M') if seconds > 0 else 'No scheduled scans' }}
+                        </span>
                     </li>
                 </ul>
             </div>
