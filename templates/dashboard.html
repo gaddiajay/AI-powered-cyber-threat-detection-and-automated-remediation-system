@@ -226,6 +226,138 @@
         </div>
     </div>
     
+    <!-- Threat Prediction Section -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card bg-dark">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0"><i class="fas fa-brain"></i> AI-Powered Threat Prediction</h5>
+                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#predictionCollapse" aria-expanded="false" aria-controls="predictionCollapse">
+                        <i class="fas fa-chevron-down"></i> Toggle
+                    </button>
+                </div>
+                <div class="collapse show" id="predictionCollapse">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card bg-dark-light mb-3">
+                                    <div class="card-header">
+                                        <h6 class="card-title mb-0"><i class="fas fa-chart-line"></i> Predictive Analysis</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <form id="predictionForm" method="POST" action="{{ url_for('predict_threats') }}">
+                                            <div class="mb-3">
+                                                <label for="predictionType" class="form-label">Prediction Type</label>
+                                                <select class="form-select" id="predictionType" name="prediction_type" required>
+                                                    <option value="threat_likelihood">Threat Likelihood</option>
+                                                    <option value="attack_vector">Attack Vector Analysis</option>
+                                                    <option value="vulnerability_assessment">Vulnerability Assessment</option>
+                                                    <option value="security_posture">Security Posture Forecast</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="timeFrame" class="form-label">Time Frame</label>
+                                                <select class="form-select" id="timeFrame" name="time_frame" required>
+                                                    <option value="24h">Next 24 Hours</option>
+                                                    <option value="7d">Next 7 Days</option>
+                                                    <option value="30d">Next 30 Days</option>
+                                                    <option value="custom">Custom...</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="dataSources" class="form-label">Data Sources</label>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" value="network_logs" id="networkLogs" name="data_sources[]" checked>
+                                                    <label class="form-check-label" for="networkLogs">Network Logs</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" value="auth_logs" id="authLogs" name="data_sources[]" checked>
+                                                    <label class="form-check-label" for="authLogs">Authentication Logs</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" value="threat_intelligence" id="threatIntel" name="data_sources[]" checked>
+                                                    <label class="form-check-label" for="threatIntel">Threat Intelligence</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" value="system_metrics" id="systemMetrics" name="data_sources[]" checked>
+                                                    <label class="form-check-label" for="systemMetrics">System Metrics</label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="confidenceThreshold" class="form-label">
+                                                    Confidence Threshold: <span id="confidenceValue">70</span>%
+                                                </label>
+                                                <input type="range" class="form-range" min="50" max="95" step="5" value="70" id="confidenceThreshold" name="confidence_threshold" onchange="document.getElementById('confidenceValue').textContent = this.value">
+                                            </div>
+                                            <div class="d-grid gap-2">
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="fas fa-chart-line"></i> Generate Prediction
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-dark-light h-100">
+                                    <div class="card-header">
+                                        <h6 class="card-title mb-0"><i class="fas fa-shield-alt"></i> Prediction Results</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if prediction_results %}
+                                        <div class="prediction-results">
+                                            <h5>{{ prediction_results.title }}</h5>
+                                            <div class="prediction-score mb-3">
+                                                <div class="progress">
+                                                    <div class="progress-bar {{ prediction_results.color }}" role="progressbar" style="width: {{ prediction_results.score }}%">
+                                                        {{ prediction_results.score }}%
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted mt-1 d-block">{{ prediction_results.description }}</small>
+                                            </div>
+                                            
+                                            <h6>Top Predicted Threats:</h6>
+                                            <ul class="list-group list-group-flush mb-3">
+                                                {% for threat in prediction_results.threats %}
+                                                <li class="list-group-item bg-dark-light text-light border-light-subtle d-flex justify-content-between align-items-center">
+                                                    {{ threat.name }}
+                                                    <span class="badge {{ threat.badge_class }}">{{ threat.probability }}%</span>
+                                                </li>
+                                                {% endfor %}
+                                            </ul>
+                                            
+                                            <h6>Recommendations:</h6>
+                                            <ul class="list-unstyled">
+                                                {% for rec in prediction_results.recommendations %}
+                                                <li><i class="fas fa-check-circle text-success me-2"></i> {{ rec }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                            
+                                            <div class="text-muted mt-3">
+                                                <small>Generated on {{ prediction_results.timestamp }}</small>
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <div class="prediction-placeholder text-center py-4">
+                                            <div class="placeholder-icon mb-3">
+                                                <i class="fas fa-chart-line fa-5x text-muted"></i>
+                                            </div>
+                                            <h5 class="text-muted">No Prediction Data Available</h5>
+                                            <p class="text-muted">
+                                                Use the form to generate AI-powered predictions based on your security data.
+                                            </p>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Security Actions -->
     <div class="row mb-4">
         <div class="col-md-12">

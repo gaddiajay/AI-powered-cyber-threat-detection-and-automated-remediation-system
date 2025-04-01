@@ -1,10 +1,12 @@
 import os
 import logging
-from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
+import random
+import json
+from flask import Flask, render_template, redirect, url_for, flash, request, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, current_user
+from flask_login import LoginManager, current_user, login_required
 from sqlalchemy.orm import DeclarativeBase
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 # Configure logging
@@ -89,11 +91,18 @@ def dashboard():
         'remediated_threats': models.Threat.query.filter_by(status='remediated').count()
     }
     
+    # Check if we have any prediction results in the session
+    prediction_results = session.get('prediction_results', None)
+    # Clear the session after retrieving data to prevent stale results
+    if prediction_results:
+        session.pop('prediction_results', None)
+    
     return render_template('dashboard.html', 
                           threats=threats, 
                           alerts=alerts, 
                           threat_stats=threat_stats,
                           stats=stats,
+                          prediction_results=prediction_results,
                           title='Security Dashboard')
 
 @app.route('/threats')
@@ -176,6 +185,150 @@ def threat_summary():
         'by_status': status_counts,
         'by_type': type_data
     })
+
+# Threat prediction route
+@app.route('/predict-threats', methods=['POST'])
+@login_required
+def predict_threats():
+    """Generate threat predictions based on the provided parameters"""
+    try:
+        # Get prediction parameters from the form
+        prediction_type = request.form.get('prediction_type', 'threat_likelihood')
+        time_frame = request.form.get('time_frame', '24h')
+        data_sources = request.form.getlist('data_sources[]')
+        confidence_threshold = int(request.form.get('confidence_threshold', 70))
+        
+        # Log the prediction request
+        log = models.Log(
+            source="prediction",
+            log_type="threat_prediction",
+            message=f"Threat prediction requested: Type={prediction_type}, Time Frame={time_frame}",
+            user_id=current_user.id if current_user.is_authenticated else None,
+            severity="info"
+        )
+        db.session.add(log)
+        db.session.commit()
+        
+        # In a real system, we would use the threat_classifier and anomaly_detector ML models
+        # For now, we'll simulate results based on the parameters
+        
+        # Import classifier and detector from threat_detection.py
+        from threat_detection import threat_classifier, anomaly_detector
+        
+        # Generate prediction results based on type
+        prediction_results = generate_prediction_results(
+            prediction_type, 
+            time_frame, 
+            data_sources, 
+            confidence_threshold
+        )
+        
+        # Store results in session for the dashboard to display
+        session['prediction_results'] = prediction_results
+        
+        flash('Threat prediction generated successfully', 'success')
+        return redirect(url_for('dashboard'))
+        
+    except Exception as e:
+        logger.error(f"Error generating threat prediction: {str(e)}")
+        flash(f'An error occurred while generating prediction: {str(e)}', 'danger')
+        return redirect(url_for('dashboard'))
+
+def generate_prediction_results(prediction_type, time_frame, data_sources, confidence_threshold):
+    """Generate simulated prediction results based on parameters"""
+    # Base score based on confidence threshold
+    base_score = confidence_threshold
+    # Adjust score randomly to simulate variance
+    score = max(50, min(95, base_score + random.randint(-10, 10)))
+    
+    # Define title and description based on prediction type
+    prediction_titles = {
+        'threat_likelihood': 'Threat Likelihood Analysis',
+        'attack_vector': 'Attack Vector Analysis',
+        'vulnerability_assessment': 'Vulnerability Assessment',
+        'security_posture': 'Security Posture Forecast'
+    }
+    
+    prediction_descriptions = {
+        'threat_likelihood': 'Prediction of potential threats based on historical data and threat intelligence',
+        'attack_vector': 'Analysis of potential attack vectors and entry points',
+        'vulnerability_assessment': 'Assessment of system vulnerabilities and exploitation risks',
+        'security_posture': 'Overall security posture and recommendations'
+    }
+    
+    # Generate color based on score
+    if score >= 80:
+        color = 'bg-danger'
+    elif score >= 60:
+        color = 'bg-warning'
+    else:
+        color = 'bg-success'
+    
+    # Generate list of potential threats
+    common_threats = [
+        {"name": "SQL Injection Attack", "probability": random.randint(60, 90), "badge_class": "bg-danger"},
+        {"name": "Cross-Site Scripting (XSS)", "probability": random.randint(55, 85), "badge_class": "bg-warning text-dark"},
+        {"name": "Brute Force Authentication", "probability": random.randint(50, 80), "badge_class": "bg-danger"},
+        {"name": "DDoS Attack", "probability": random.randint(40, 75), "badge_class": "bg-warning text-dark"},
+        {"name": "Phishing Campaign", "probability": random.randint(60, 85), "badge_class": "bg-danger"},
+        {"name": "Malware Infection", "probability": random.randint(50, 80), "badge_class": "bg-warning text-dark"},
+        {"name": "Credential Stuffing", "probability": random.randint(45, 75), "badge_class": "bg-info text-dark"},
+        {"name": "Insider Threat", "probability": random.randint(30, 65), "badge_class": "bg-info text-dark"}
+    ]
+    
+    # Select a subset of threats based on prediction type and sort by probability
+    selected_threats = sorted(
+        random.sample(common_threats, k=min(4, len(common_threats))),
+        key=lambda x: x["probability"],
+        reverse=True
+    )
+    
+    # Generate recommendations based on prediction type
+    recommendation_options = {
+        'threat_likelihood': [
+            "Implement multi-factor authentication across all systems",
+            "Update firewall rules to block suspicious IP ranges",
+            "Conduct security awareness training for all employees",
+            "Review and update access control policies"
+        ],
+        'attack_vector': [
+            "Implement web application firewall for public-facing services",
+            "Secure API endpoints with rate limiting and IP restrictions",
+            "Enforce HTTPS across all web services",
+            "Implement network segmentation to isolate critical systems"
+        ],
+        'vulnerability_assessment': [
+            "Patch identified system vulnerabilities within 48 hours",
+            "Implement regular vulnerability scanning schedule",
+            "Review and harden server configurations",
+            "Deploy intrusion detection systems on critical network segments"
+        ],
+        'security_posture': [
+            "Develop and test incident response procedures",
+            "Implement security monitoring and alerting",
+            "Conduct regular security audits and penetration testing",
+            "Review and update the security policy documentation"
+        ]
+    }
+    
+    # Select 3-4 recommendations
+    recommendations = random.sample(
+        recommendation_options.get(prediction_type, recommendation_options['threat_likelihood']),
+        k=min(3, len(recommendation_options.get(prediction_type, [])))
+    )
+    
+    # Prepare the final results object
+    results = {
+        'title': prediction_titles.get(prediction_type, 'Threat Analysis'),
+        'description': prediction_descriptions.get(prediction_type, 'Analysis of potential security threats'),
+        'score': score,
+        'color': color,
+        'threats': selected_threats,
+        'recommendations': recommendations,
+        'timestamp': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    }
+    
+    return results
 
 # Context processor for global template variables
 @app.context_processor

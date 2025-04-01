@@ -214,6 +214,12 @@
     z-index: 1060;
 }
 
+/* Dark light background - slightly lighter than bg-dark */
+.bg-dark-light {
+    background-color: #343a40 !important;
+    color: #fff;
+}
+
 /* Log details */
 .log-detail-row:nth-child(odd) {
     background-color: rgba(255, 255, 255, 0.05);
