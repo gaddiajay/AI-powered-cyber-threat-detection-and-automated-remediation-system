@@ -132,4 +132,13 @@ This project is intended for educational purposes only. Please use responsibly a
 
 ## Acknowledgments
 
-- List any libraries, resources, or individuals that helped in creating this project
+- 
+---
+
+ This version is cleaner, has **badges, sections, future work, screenshots placeholders, and architecture diagram placeholders**.  
+It looks **professional, recruiter-ready, and portfolio-friendly**.  
+
+---
+
+ 
+
