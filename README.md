@@ -127,7 +127,7 @@ This project is intended for educational purposes only. Please use responsibly a
 
 ## Contributors
 
-- Your Name
+- Gaddi Ajay
 - (Add your team members here)
 
 ## Acknowledgments
