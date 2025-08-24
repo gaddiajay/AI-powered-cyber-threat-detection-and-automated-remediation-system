@@ -128,7 +128,7 @@ This project is intended for educational purposes only. Please use responsibly a
 ## Contributors
 
 - Gaddi Ajay
-- (Add your team members here)
+  
 
 ## Acknowledgments
 
