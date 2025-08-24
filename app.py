@@ -215,7 +215,22 @@ def predict_threats():
         # Get prediction parameters from the form
         prediction_type = request.form.get('prediction_type', 'threat_likelihood')
         time_frame = request.form.get('time_frame', '24h')
+        
+        # Handle custom timeframe
+        if time_frame == 'custom':
+            custom_days = request.form.get('custom_timeframe', '14')
+            try:
+                custom_days = int(custom_days)
+                if custom_days < 1:
+                    custom_days = 14
+                elif custom_days > 365:
+                    custom_days = 365
+                time_frame = f"{custom_days}d"
+            except ValueError:
+                time_frame = '14d'
+        
         data_sources = request.form.getlist('data_sources[]')
+        specific_threats = request.form.get('specific_threats', '')
         confidence_threshold = int(request.form.get('confidence_threshold', 70))
         
         # Log the prediction request
@@ -254,7 +269,7 @@ def predict_threats():
         flash(f'An error occurred while generating prediction: {str(e)}', 'danger')
         return redirect(url_for('dashboard'))
 
-def generate_prediction_results(prediction_type, time_frame, data_sources, confidence_threshold):
+def generate_prediction_results(prediction_type, time_frame, data_sources, confidence_threshold, specific_threats=None):
     """Generate simulated prediction results based on parameters"""
     # Base score based on confidence threshold
     base_score = confidence_threshold
@@ -295,6 +310,26 @@ def generate_prediction_results(prediction_type, time_frame, data_sources, confi
         {"name": "Credential Stuffing", "probability": random.randint(45, 75), "badge_class": "bg-info text-dark"},
         {"name": "Insider Threat", "probability": random.randint(30, 65), "badge_class": "bg-info text-dark"}
     ]
+    
+    # Filter threats based on specific_threats parameter if provided
+    if specific_threats:
+        # Split comma-separated string into list of threats
+        threat_names = [t.strip().lower() for t in specific_threats.split(',') if t.strip()]
+        
+        if threat_names:
+            # Filter threats that match or partially match the provided names
+            filtered_threats = []
+            for threat in common_threats:
+                for name in threat_names:
+                    if name in threat['name'].lower():
+                        # Boost the probability for specifically requested threats
+                        threat['probability'] = min(95, threat['probability'] + 10)
+                        filtered_threats.append(threat)
+                        break
+            
+            # If we found matching threats, use them
+            if filtered_threats:
+                common_threats = filtered_threats
     
     # Select a subset of threats based on prediction type and sort by probability
     selected_threats = sorted(
