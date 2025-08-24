@@ -4,7 +4,7 @@ A comprehensive cybersecurity platform that combines AI/ML techniques with secur
 
 ## Project Overview
 
-This system is designed as college project to demonstrate the application of artificial intelligence and machine learning in cybersecurity. It provides real-time threat detection, analysis of security logs, prediction of potential threats, and automated remediation capabilities.
+This system is designed to demonstrate the application of artificial intelligence and machine learning in cybersecurity. It provides real-time threat detection, analysis of security logs, prediction of potential threats, and automated remediation capabilities.
 
 ### Key Features
 
